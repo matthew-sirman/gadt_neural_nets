@@ -3,8 +3,9 @@
 module NeuralNet where
 
 import LinearAlgebra
-import Differentation
+-- import Differentation
 import Data.Kind (Constraint)
+import System.Random
 
 type family All (c :: Nat -> Constraint) (ls :: [Nat]) :: Constraint where
     All _ '[] = Natural Z
@@ -29,4 +30,7 @@ runNetwork :: (Num a, Natural o, Natural b, All Natural ls)
            => DenseNetwork i o ls a -> Matrix i b a -> Matrix o b a
 runNetwork (DNOne layer) inputs = runDense layer inputs
 runNetwork (DNCons layer rest) inputs = runNetwork rest (runDense layer inputs)
+
+populateMatrix :: (Random a, Num a, Natural n, Natural m) => StdGen -> Matrix n m a
+populateMatrix gen = populate (populate 0)
 

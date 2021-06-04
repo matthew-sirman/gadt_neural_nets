@@ -1,6 +1,11 @@
+{-# LANGUAGE FlexibleInstances, KindSignatures, TypeFamilies, TypeOperators, RankNTypes, InstanceSigs, MultiParamTypeClasses #-}
+
 module Differentation (
     d
 ) where
+
+import LinearAlgebra
+import Data.Functor.Identity
 
 data Dual a = Dual
     { runEval :: a
@@ -42,6 +47,17 @@ instance (Floating a, Eq a) => Floating (Dual a) where
     (Dual u u') ** (Dual v v') = Dual (u ** v) ((u ** v) * (v' * (log u) + (v * u' / u)))
     logBase (Dual u u') (Dual v v') = Dual (logBase u v) (((log v) * u' / u - (log u) * v' / v) / ((log u) ** 2))
 
-d :: Num a => (a -> b) -> a -> b
-d f x = runDeriv $ f (Dual x 1)
+-- instance VectorType v => VectorType (Dual :. v) where
+--     dot (O (Dual u u')) (O (Dual v v')) = undefined
+
+-- instance VectorType Dual Dual where
+--     dot :: Dual (v a) -> Dual (v a) -> Dual a
+--     dot (Dual u u') (Dual v v') = Dual (dot u v) 1
+
+-- instance VectorType Identity where
+--     dot :: (Num a) => Identity a -> Identity a -> a
+--     dot (Identity x) (Identity y) = x * y
+
+d :: (VectorType v, Num a) => (v (Dual a) -> v (Dual b)) -> v a -> v b
+d f x = fmap runDeriv $ f (fmap (\u -> Dual u 1) x)
 
