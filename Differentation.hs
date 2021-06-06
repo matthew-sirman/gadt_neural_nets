@@ -5,7 +5,6 @@ module Differentation (
 ) where
 
 import LinearAlgebra
-import Data.Functor.Identity
 
 data Dual a = Dual
     { runEval :: a
@@ -47,6 +46,9 @@ instance (Floating a, Eq a) => Floating (Dual a) where
     (Dual u u') ** (Dual v v') = Dual (u ** v) ((u ** v) * (v' * (log u) + (v * u' / u)))
     logBase (Dual u u') (Dual v v') = Dual (logBase u v) (((log v) * u' / u - (log u) * v' / v) / ((log u) ** 2))
 
+instance Ord a => Ord (Dual a) where
+    (Dual u _) <= (Dual v _) = u <= v
+
 -- instance VectorType v => VectorType (Dual :. v) where
 --     dot (O (Dual u u')) (O (Dual v v')) = undefined
 
@@ -58,6 +60,6 @@ instance (Floating a, Eq a) => Floating (Dual a) where
 --     dot :: (Num a) => Identity a -> Identity a -> a
 --     dot (Identity x) (Identity y) = x * y
 
-d :: (VectorType v, Num a) => (v (Dual a) -> v (Dual b)) -> v a -> v b
-d f x = fmap runDeriv $ f (fmap (\u -> Dual u 1) x)
+d :: (Num a) => (Dual a -> Dual b) -> a -> b
+d f x = runDeriv $ f (Dual x 1)
 
